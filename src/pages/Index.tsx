@@ -13,7 +13,7 @@ const Index = () => {
         <nav className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <MapPin className="w-8 h-8 text-primary" />
-            <h1 className="text-2xl font-bold">Smart City</h1>
+            <h1 className="text-2xl font-bold">Connecta</h1>
           </div>
           <Button onClick={() => navigate("/auth")}>Connexion</Button>
         </nav>
@@ -124,7 +124,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="container mx-auto px-4 py-8 border-t border-border/50">
         <div className="text-center text-muted-foreground">
-          <p>&copy; 2024 Smart City. Tous droits réservés.</p>
+          <p>&copy; 2024 Connecta. Tous droits réservés.</p>
         </div>
       </footer>
     </div>

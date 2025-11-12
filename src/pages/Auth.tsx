@@ -60,7 +60,7 @@ const Auth = () => {
         <div className="hidden md:flex flex-col space-y-6">
           <div className="space-y-4">
             <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Smart City
+              Connecta
             </h1>
             <p className="text-xl text-muted-foreground">
               Gérez votre ville intelligente en temps réel

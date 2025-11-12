@@ -125,7 +125,7 @@ const Dashboard = () => {
           <div className="flex items-center space-x-4">
             <Map className="w-8 h-8 text-primary" />
             <div>
-              <h1 className="text-2xl font-bold">Smart City</h1>
+              <h1 className="text-2xl font-bold">Connecta</h1>
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 {getRoleIcon()}
                 <span>{getRoleLabel()}</span>
