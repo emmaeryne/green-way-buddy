@@ -248,6 +248,54 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          duration_days: number
+          features: Json | null
+          id: string
+          includes_charging: boolean | null
+          includes_parking: boolean | null
+          includes_revision: boolean | null
+          includes_vehicles: boolean | null
+          is_active: boolean | null
+          max_reservations: number | null
+          name: string
+          price: number
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          duration_days: number
+          features?: Json | null
+          id?: string
+          includes_charging?: boolean | null
+          includes_parking?: boolean | null
+          includes_revision?: boolean | null
+          includes_vehicles?: boolean | null
+          is_active?: boolean | null
+          max_reservations?: number | null
+          name: string
+          price: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          duration_days?: number
+          features?: Json | null
+          id?: string
+          includes_charging?: boolean | null
+          includes_parking?: boolean | null
+          includes_revision?: boolean | null
+          includes_vehicles?: boolean | null
+          is_active?: boolean | null
+          max_reservations?: number | null
+          name?: string
+          price?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -268,6 +316,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          auto_renew: boolean | null
+          created_at: string | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          payment_status: string | null
+          plan_id: string
+          start_date: string
+          user_id: string
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          created_at?: string | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          payment_status?: string | null
+          plan_id: string
+          start_date?: string
+          user_id: string
+        }
+        Update: {
+          auto_renew?: boolean | null
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          payment_status?: string | null
+          plan_id?: string
+          start_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
