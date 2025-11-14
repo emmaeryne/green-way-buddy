@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Zap, Car, BookOpen, Calendar } from "lucide-react";
+import { MapPin, Zap, Car, BookOpen, Calendar, Map as MapIcon } from "lucide-react";
 import { toast } from "sonner";
+import Map from "@/components/Map";
 
 interface ClientDashboardProps {
   userId: string;
@@ -131,13 +132,26 @@ const ClientDashboard = ({ userId }: ClientDashboardProps) => {
         </Card>
       </div>
 
-      <Tabs defaultValue="parking" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="map" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="map">
+            <MapIcon className="w-4 h-4 mr-2" />
+            Carte
+          </TabsTrigger>
           <TabsTrigger value="parking">Parkings</TabsTrigger>
           <TabsTrigger value="charging">Bornes</TabsTrigger>
           <TabsTrigger value="vehicles">Véhicules</TabsTrigger>
           <TabsTrigger value="reservations">Mes Réservations</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="map" className="space-y-4">
+          <Map 
+            parkingSpots={parkingSpots}
+            chargingStations={chargingStations}
+            electricVehicles={electricVehicles}
+            revisionSpaces={revisionSpaces}
+          />
+        </TabsContent>
 
         <TabsContent value="parking" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
