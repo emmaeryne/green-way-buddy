@@ -58,11 +58,21 @@ const Dashboard = () => {
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user.id)
-        .single();
+        .eq("user_id", user.id);
 
       if (error) throw error;
-      setUserRole(data?.role as UserRole);
+      
+      // Si l'utilisateur a plusieurs rôles, prioriser: admin > worker > client
+      if (data && data.length > 0) {
+        const roles = data.map(r => r.role);
+        if (roles.includes("admin")) {
+          setUserRole("admin");
+        } else if (roles.includes("worker")) {
+          setUserRole("worker");
+        } else {
+          setUserRole("client");
+        }
+      }
     } catch (error) {
       console.error("Error fetching user role:", error);
       toast.error("Erreur lors de la récupération du rôle utilisateur");
