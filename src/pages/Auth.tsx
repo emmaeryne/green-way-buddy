@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { MapPin, Zap, AlertTriangle } from "lucide-react";
+import connectaLogo from "@/assets/connecta-logo.png";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -59,9 +60,7 @@ const Auth = () => {
         {/* Hero Section */}
         <div className="hidden md:flex flex-col space-y-6">
           <div className="space-y-4">
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Connecta
-            </h1>
+            <img src={connectaLogo} alt="Connecta" className="h-16 w-auto" />
             <p className="text-xl text-muted-foreground">
               Gérez votre ville intelligente en temps réel
             </p>

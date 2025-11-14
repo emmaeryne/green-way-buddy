@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MapPin, Zap, Car, AlertTriangle, Users, TrendingUp } from "lucide-react";
+import connectaLogo from "@/assets/connecta-logo.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -11,9 +12,8 @@ const Index = () => {
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
         <nav className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <MapPin className="w-8 h-8 text-primary" />
-            <h1 className="text-2xl font-bold">Connecta</h1>
+          <div className="flex items-center space-x-3">
+            <img src={connectaLogo} alt="Connecta" className="h-12 w-auto" />
           </div>
           <Button onClick={() => navigate("/auth")}>Connexion</Button>
         </nav>

@@ -8,6 +8,7 @@ import { LogOut, Map, Car, AlertCircle, Settings } from "lucide-react";
 import ClientDashboard from "@/components/dashboard/ClientDashboard";
 import WorkerDashboard from "@/components/dashboard/WorkerDashboard";
 import AdminDashboard from "@/components/dashboard/AdminDashboard";
+import connectaLogo from "@/assets/connecta-logo.png";
 
 type UserRole = "client" | "worker" | "admin";
 
@@ -123,9 +124,8 @@ const Dashboard = () => {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Map className="w-8 h-8 text-primary" />
+            <img src={connectaLogo} alt="Connecta" className="h-10 w-auto" />
             <div>
-              <h1 className="text-2xl font-bold">Connecta</h1>
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 {getRoleIcon()}
                 <span>{getRoleLabel()}</span>
