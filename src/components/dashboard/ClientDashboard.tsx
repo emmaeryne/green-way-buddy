@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Zap, Car, BookOpen, Calendar, Map as MapIcon } from "lucide-react";
+import { MapPin, Zap, Car, BookOpen, Calendar, Map as MapIcon, CreditCard } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import Map from "@/components/Map";
 
 interface ClientDashboardProps {
@@ -12,6 +13,7 @@ interface ClientDashboardProps {
 }
 
 const ClientDashboard = ({ userId }: ClientDashboardProps) => {
+  const navigate = useNavigate();
   const [parkingSpots, setParkingSpots] = useState<any[]>([]);
   const [chargingStations, setChargingStations] = useState<any[]>([]);
   const [revisionSpaces, setRevisionSpaces] = useState<any[]>([]);
@@ -86,6 +88,13 @@ const ClientDashboard = ({ userId }: ClientDashboardProps) => {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end mb-4">
+        <Button onClick={() => navigate("/subscriptions")} variant="outline">
+          <CreditCard className="w-4 h-4 mr-2" />
+          Voir les abonnements
+        </Button>
+      </div>
+      
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

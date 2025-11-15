@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { MapPin, Zap, AlertTriangle } from "lucide-react";
 import connectaLogo from "@/assets/connecta-logo.png";
+import Footer from "@/components/Footer";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -173,6 +174,7 @@ const Auth = () => {
           </CardContent>
         </Card>
       </div>
+      <Footer />
     </div>
   );
 };
