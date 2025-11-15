@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MapPin, Zap, Car, AlertTriangle, Users, TrendingUp } from "lucide-react";
 import connectaLogo from "@/assets/connecta-logo.png";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -121,12 +122,7 @@ const Index = () => {
         </Card>
       </section>
 
-      {/* Footer */}
-      <footer className="container mx-auto px-4 py-8 border-t border-border/50">
-        <div className="text-center text-muted-foreground">
-          <p>&copy; 2024 Connecta. Tous droits réservés.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

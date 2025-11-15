@@ -9,6 +9,7 @@ import ClientDashboard from "@/components/dashboard/ClientDashboard";
 import WorkerDashboard from "@/components/dashboard/WorkerDashboard";
 import AdminDashboard from "@/components/dashboard/AdminDashboard";
 import connectaLogo from "@/assets/connecta-logo.png";
+import Footer from "@/components/Footer";
 
 type UserRole = "client" | "worker" | "admin";
 
@@ -156,6 +157,8 @@ const Dashboard = () => {
         {userRole === "worker" && <WorkerDashboard userId={user!.id} />}
         {userRole === "admin" && <AdminDashboard userId={user!.id} />}
       </main>
+      
+      <Footer />
     </div>
   );
 };
