@@ -184,7 +184,11 @@ const WorkerDashboard = ({ userId }: WorkerDashboardProps) => {
                     </Button>
                   )}
 
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => window.open(`https://www.google.com/maps?q=${alert.latitude},${alert.longitude}`, '_blank')}
+                  >
                     <MapPin className="w-4 h-4 mr-2" />
                     Voir sur la carte
                   </Button>
