@@ -3,16 +3,35 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Calendar, Building2, Users, Sparkles } from "lucide-react";
+import { Check, Calendar, Building2, Users, Sparkles, CreditCard, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Footer from "@/components/Footer";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const Subscriptions = () => {
   const navigate = useNavigate();
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showCardDialog, setShowCardDialog] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [generatedCard, setGeneratedCard] = useState<any>(null);
+  const [cardDetails, setCardDetails] = useState({
+    number: "",
+    name: "",
+    expiry: "",
+    cvv: "",
+  });
 
   useEffect(() => {
     checkAuth();
@@ -46,24 +65,35 @@ const Subscriptions = () => {
     }
   };
 
-  const subscribeToPlan = async (planId: string, durationDays: number) => {
-    if (!userId) return;
+  const handlePlanSelection = (plan: any) => {
+    setSelectedPlan(plan);
+    setShowPaymentDialog(true);
+  };
+
+  const processPayment = async () => {
+    if (!userId || !selectedPlan) return;
+
+    // Validate card details
+    if (!cardDetails.number || !cardDetails.name || !cardDetails.expiry || !cardDetails.cvv) {
+      toast.error("Veuillez remplir tous les champs");
+      return;
+    }
 
     try {
-      // Simulate payment processing
+      setShowPaymentDialog(false);
       toast.loading("Traitement du paiement...");
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       const startDate = new Date();
       const endDate = new Date();
-      endDate.setDate(endDate.getDate() + durationDays);
+      endDate.setDate(endDate.getDate() + selectedPlan.duration_days);
 
       // Create subscription
       const { data: subscription, error: subError } = await supabase
         .from("user_subscriptions")
         .insert({
           user_id: userId,
-          plan_id: planId,
+          plan_id: selectedPlan.id,
           start_date: startDate.toISOString(),
           end_date: endDate.toISOString(),
           payment_status: "paid",
@@ -78,21 +108,31 @@ const Subscriptions = () => {
       const cardNumber = `CONN-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       const qrCode = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${cardNumber}`;
 
-      const { error: cardError } = await supabase.from("loyalty_cards").insert({
-        user_id: userId,
-        subscription_id: subscription.id,
-        card_number: cardNumber,
-        qr_code: qrCode,
-        issued_at: startDate.toISOString(),
-        expires_at: endDate.toISOString(),
-        is_active: true,
-      });
+      const { data: card, error: cardError } = await supabase
+        .from("loyalty_cards")
+        .insert({
+          user_id: userId,
+          subscription_id: subscription.id,
+          card_number: cardNumber,
+          qr_code: qrCode,
+          issued_at: startDate.toISOString(),
+          expires_at: endDate.toISOString(),
+          is_active: true,
+        })
+        .select()
+        .single();
 
       if (cardError) throw cardError;
 
       toast.dismiss();
-      toast.success("Paiement réussi ! Votre carte de fidélité a été générée.");
-      navigate("/dashboard");
+      toast.success("Paiement réussi !");
+      
+      // Show loyalty card
+      setGeneratedCard({ ...card, plan_name: selectedPlan.name });
+      setShowCardDialog(true);
+      
+      // Reset form
+      setCardDetails({ number: "", name: "", expiry: "", cvv: "" });
     } catch (error: any) {
       toast.dismiss();
       toast.error("Erreur lors du traitement de l'abonnement");
@@ -210,7 +250,7 @@ const Subscriptions = () => {
                   <Button
                     className="w-full"
                     variant={plan.name.toLowerCase().includes("commercial") ? "default" : "outline"}
-                    onClick={() => subscribeToPlan(plan.id, plan.duration_days)}
+                    onClick={() => handlePlanSelection(plan)}
                   >
                     Choisir ce plan
                   </Button>
@@ -228,6 +268,142 @@ const Subscriptions = () => {
           </Card>
         )}
       </div>
+
+      {/* Payment Dialog */}
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              Paiement sécurisé
+            </DialogTitle>
+            <DialogDescription>
+              {selectedPlan?.name} - {selectedPlan?.price}€
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="card-number">Numéro de carte</Label>
+              <Input
+                id="card-number"
+                placeholder="1234 5678 9012 3456"
+                maxLength={19}
+                value={cardDetails.number}
+                onChange={(e) => setCardDetails({ ...cardDetails, number: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="card-name">Nom sur la carte</Label>
+              <Input
+                id="card-name"
+                placeholder="JEAN DUPONT"
+                value={cardDetails.name}
+                onChange={(e) => setCardDetails({ ...cardDetails, name: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="expiry">Date d'expiration</Label>
+                <Input
+                  id="expiry"
+                  placeholder="MM/AA"
+                  maxLength={5}
+                  value={cardDetails.expiry}
+                  onChange={(e) => setCardDetails({ ...cardDetails, expiry: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cvv">CVV</Label>
+                <Input
+                  id="cvv"
+                  placeholder="123"
+                  maxLength={3}
+                  type="password"
+                  value={cardDetails.cvv}
+                  onChange={(e) => setCardDetails({ ...cardDetails, cvv: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowPaymentDialog(false)} className="flex-1">
+              Annuler
+            </Button>
+            <Button onClick={processPayment} className="flex-1">
+              Payer {selectedPlan?.price}€
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Loyalty Card Dialog */}
+      <Dialog open={showCardDialog} onOpenChange={setShowCardDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              Votre carte de fidélité
+            </DialogTitle>
+            <DialogDescription>
+              Félicitations ! Votre abonnement a été activé
+            </DialogDescription>
+          </DialogHeader>
+          {generatedCard && (
+            <div className="space-y-4 py-4">
+              <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-xs opacity-80">Plan</p>
+                      <p className="font-bold text-lg">{generatedCard.plan_name}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs opacity-80">Numéro de carte</p>
+                      <p className="font-mono text-sm">{generatedCard.card_number}</p>
+                    </div>
+                    <div className="flex justify-center py-4 bg-white rounded-lg">
+                      <img 
+                        src={generatedCard.qr_code} 
+                        alt="QR Code" 
+                        className="w-32 h-32"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <p className="opacity-80">Émise le</p>
+                        <p>{new Date(generatedCard.issued_at).toLocaleDateString('fr-FR')}</p>
+                      </div>
+                      <div>
+                        <p className="opacity-80">Expire le</p>
+                        <p>{new Date(generatedCard.expires_at).toLocaleDateString('fr-FR')}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => window.print()}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Télécharger
+                </Button>
+                <Button 
+                  className="flex-1"
+                  onClick={() => {
+                    setShowCardDialog(false);
+                    navigate("/dashboard");
+                  }}
+                >
+                  Voir mon tableau de bord
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       
       <Footer />
     </div>
