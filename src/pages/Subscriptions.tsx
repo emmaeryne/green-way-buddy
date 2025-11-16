@@ -50,25 +50,52 @@ const Subscriptions = () => {
     if (!userId) return;
 
     try {
+      // Simulate payment processing
+      toast.loading("Traitement du paiement...");
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
       const startDate = new Date();
       const endDate = new Date();
       endDate.setDate(endDate.getDate() + durationDays);
 
-      const { error } = await supabase.from("user_subscriptions").insert({
+      // Create subscription
+      const { data: subscription, error: subError } = await supabase
+        .from("user_subscriptions")
+        .insert({
+          user_id: userId,
+          plan_id: planId,
+          start_date: startDate.toISOString(),
+          end_date: endDate.toISOString(),
+          payment_status: "paid",
+          is_active: true,
+        })
+        .select()
+        .single();
+
+      if (subError) throw subError;
+
+      // Generate loyalty card
+      const cardNumber = `CONN-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      const qrCode = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${cardNumber}`;
+
+      const { error: cardError } = await supabase.from("loyalty_cards").insert({
         user_id: userId,
-        plan_id: planId,
-        start_date: startDate.toISOString(),
-        end_date: endDate.toISOString(),
-        payment_status: "pending",
+        subscription_id: subscription.id,
+        card_number: cardNumber,
+        qr_code: qrCode,
+        issued_at: startDate.toISOString(),
+        expires_at: endDate.toISOString(),
         is_active: true,
       });
 
-      if (error) throw error;
+      if (cardError) throw cardError;
 
-      toast.success("Abonnement créé avec succès !");
+      toast.dismiss();
+      toast.success("Paiement réussi ! Votre carte de fidélité a été générée.");
       navigate("/dashboard");
     } catch (error: any) {
-      toast.error("Erreur lors de la création de l'abonnement");
+      toast.dismiss();
+      toast.error("Erreur lors du traitement de l'abonnement");
       console.error(error);
     }
   };

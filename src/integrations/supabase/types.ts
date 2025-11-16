@@ -128,6 +128,50 @@ export type Database = {
         }
         Relationships: []
       }
+      loyalty_cards: {
+        Row: {
+          card_number: string
+          created_at: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          issued_at: string
+          qr_code: string | null
+          subscription_id: string
+          user_id: string
+        }
+        Insert: {
+          card_number: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          is_active?: boolean
+          issued_at?: string
+          qr_code?: string | null
+          subscription_id: string
+          user_id: string
+        }
+        Update: {
+          card_number?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          issued_at?: string
+          qr_code?: string | null
+          subscription_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_cards_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "user_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parking_spots: {
         Row: {
           created_at: string | null
