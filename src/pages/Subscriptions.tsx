@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Calendar, Building2, Users, Sparkles, CreditCard, Download } from "lucide-react";
+import { Check, Calendar, Building2, Users, Sparkles, CreditCard, Download, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Footer from "@/components/Footer";
@@ -26,6 +26,8 @@ const Subscriptions = () => {
   const [showCardDialog, setShowCardDialog] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [generatedCard, setGeneratedCard] = useState<any>(null);
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<any>(null);
   const [cardDetails, setCardDetails] = useState({
     number: "",
     name: "",
@@ -67,7 +69,61 @@ const Subscriptions = () => {
 
   const handlePlanSelection = (plan: any) => {
     setSelectedPlan(plan);
+    setAppliedPromo(null);
+    setPromoCode("");
     setShowPaymentDialog(true);
+  };
+
+  const applyPromoCode = async () => {
+    if (!promoCode.trim()) {
+      toast.error("Veuillez entrer un code promo");
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("promo_codes")
+        .select("*")
+        .eq("code", promoCode.toUpperCase())
+        .eq("is_active", true)
+        .single();
+
+      if (error || !data) {
+        toast.error("Code promo invalide ou expiré");
+        return;
+      }
+
+      // Check if expired
+      if (data.valid_until && new Date(data.valid_until) < new Date()) {
+        toast.error("Ce code promo a expiré");
+        return;
+      }
+
+      // Check max uses
+      if (data.max_uses && data.current_uses >= data.max_uses) {
+        toast.error("Ce code promo a atteint sa limite d'utilisation");
+        return;
+      }
+
+      setAppliedPromo(data);
+      toast.success("Code promo appliqué !");
+    } catch (error: any) {
+      toast.error("Erreur lors de la vérification du code");
+      console.error(error);
+    }
+  };
+
+  const calculateFinalPrice = () => {
+    if (!selectedPlan || !appliedPromo) return selectedPlan?.price || 0;
+
+    let discount = 0;
+    if (appliedPromo.discount_type === "percentage") {
+      discount = (selectedPlan.price * appliedPromo.discount_value) / 100;
+    } else {
+      discount = appliedPromo.discount_value;
+    }
+
+    return Math.max(0, selectedPlan.price - discount);
   };
 
   const processPayment = async () => {
@@ -88,6 +144,8 @@ const Subscriptions = () => {
       const endDate = new Date();
       endDate.setDate(endDate.getDate() + selectedPlan.duration_days);
 
+      const finalPrice = calculateFinalPrice();
+
       // Create subscription
       const { data: subscription, error: subError } = await supabase
         .from("user_subscriptions")
@@ -103,6 +161,14 @@ const Subscriptions = () => {
         .single();
 
       if (subError) throw subError;
+
+      // Update promo code usage if applied
+      if (appliedPromo) {
+        await supabase
+          .from("promo_codes")
+          .update({ current_uses: appliedPromo.current_uses + 1 })
+          .eq("id", appliedPromo.id);
+      }
 
       // Generate loyalty card
       const cardNumber = `CONN-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
@@ -133,6 +199,8 @@ const Subscriptions = () => {
       
       // Reset form
       setCardDetails({ number: "", name: "", expiry: "", cvv: "" });
+      setPromoCode("");
+      setAppliedPromo(null);
     } catch (error: any) {
       toast.dismiss();
       toast.error("Erreur lors du traitement de l'abonnement");
@@ -282,6 +350,72 @@ const Subscriptions = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {/* Promo Code Section */}
+            <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
+              <Label htmlFor="promo-code" className="flex items-center gap-2">
+                <Tag className="w-4 h-4" />
+                Code promo
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="promo-code"
+                  placeholder="PROMO2024"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                  disabled={!!appliedPromo}
+                />
+                {appliedPromo ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setAppliedPromo(null);
+                      setPromoCode("");
+                    }}
+                  >
+                    Retirer
+                  </Button>
+                ) : (
+                  <Button variant="outline" onClick={applyPromoCode}>
+                    Appliquer
+                  </Button>
+                )}
+              </div>
+              {appliedPromo && (
+                <div className="flex items-center gap-2 text-sm text-primary">
+                  <Check className="w-4 h-4" />
+                  <span>
+                    -{appliedPromo.discount_type === "percentage"
+                      ? `${appliedPromo.discount_value}%`
+                      : `${appliedPromo.discount_value}€`}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Price Summary */}
+            {appliedPromo && (
+              <div className="space-y-2 p-4 bg-primary/10 rounded-lg">
+                <div className="flex justify-between text-sm">
+                  <span>Prix original</span>
+                  <span>{selectedPlan?.price}€</span>
+                </div>
+                <div className="flex justify-between text-sm text-primary">
+                  <span>Réduction</span>
+                  <span>
+                    -
+                    {appliedPromo.discount_type === "percentage"
+                      ? ((selectedPlan?.price * appliedPromo.discount_value) / 100).toFixed(2)
+                      : appliedPromo.discount_value}
+                    €
+                  </span>
+                </div>
+                <div className="flex justify-between font-bold border-t pt-2">
+                  <span>Total</span>
+                  <span>{calculateFinalPrice().toFixed(2)}€</span>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="card-number">Numéro de carte</Label>
               <Input
@@ -330,7 +464,7 @@ const Subscriptions = () => {
               Annuler
             </Button>
             <Button onClick={processPayment} className="flex-1">
-              Payer {selectedPlan?.price}€
+              Payer {appliedPromo ? calculateFinalPrice().toFixed(2) : selectedPlan?.price}€
             </Button>
           </div>
         </DialogContent>
