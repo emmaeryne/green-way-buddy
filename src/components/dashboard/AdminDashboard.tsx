@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, AlertCircle, Calendar, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import PromoCodesManager from "./PromoCodesManager";
+import SubscriptionsOverview from "./SubscriptionsOverview";
 
 interface AdminDashboardProps {
   userId: string;
@@ -191,11 +193,21 @@ const AdminDashboard = ({ userId }: AdminDashboardProps) => {
       </div>
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="users">Utilisateurs</TabsTrigger>
+          <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
+          <TabsTrigger value="promos">Codes Promo</TabsTrigger>
           <TabsTrigger value="alerts">Alertes</TabsTrigger>
           <TabsTrigger value="reservations">Réservations</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="subscriptions" className="space-y-4">
+          <SubscriptionsOverview />
+        </TabsContent>
+
+        <TabsContent value="promos" className="space-y-4">
+          <PromoCodesManager />
+        </TabsContent>
 
         <TabsContent value="users" className="space-y-4">
           <Card>

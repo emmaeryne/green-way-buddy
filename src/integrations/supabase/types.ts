@@ -226,6 +226,48 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          created_by: string | null
+          current_uses: number | null
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          current_uses?: number | null
+          discount_type: string
+          discount_value: number
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          current_uses?: number | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       reservations: {
         Row: {
           created_at: string | null
