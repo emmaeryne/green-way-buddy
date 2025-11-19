@@ -1,15 +1,29 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MapPin, Zap, Car, AlertTriangle, Users, TrendingUp } from "lucide-react";
 import connectaLogo from "@/assets/connecta-logo.png";
 import Footer from "@/components/Footer";
 
+// ← AJOUT : on déclare la propriété pour éviter l’erreur TS
+declare global {
+  interface Window {
+    LOVABLE_CHAT_DISABLED?: boolean;
+  }
+}
+
 const Index = () => {
   const navigate = useNavigate();
 
+  // Désactive définitivement le cœur multicolore de Lovable
+  useEffect(() => {
+    window.LOVABLE_CHAT_DISABLED = true;
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5">
+
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
         <nav className="flex items-center justify-between">
@@ -27,7 +41,7 @@ const Index = () => {
             Gérez votre ville intelligente
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Une plateforme complète pour la gestion urbaine moderne : mobilité électrique, 
+            Une plateforme complète pour la gestion urbaine moderne : mobilité électrique,
             maintenance intelligente et réservations en temps réel.
           </p>
           <div className="flex items-center justify-center gap-4">
@@ -113,7 +127,7 @@ const Index = () => {
             Prêt à moderniser votre ville ?
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Rejoignez les villes intelligentes qui utilisent déjà notre plateforme 
+            Rejoignez les villes intelligentes qui utilisent déjà notre plateforme
             pour améliorer leur gestion urbaine.
           </p>
           <Button size="lg" onClick={() => navigate("/auth")}>
