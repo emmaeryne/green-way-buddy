@@ -1,1 +1,4 @@
 project_id = "vdnovvtucwrzufiehtoe"
+
+[functions.analyze-drone-image]
+verify_jwt = false

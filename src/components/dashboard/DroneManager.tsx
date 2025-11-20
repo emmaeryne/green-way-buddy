@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plane, Battery, MapPin, Play, Square, Plus, Trash2 } from "lucide-react";
+import { Plane, Battery, MapPin, Play, Square, Plus, Trash2, Camera, Brain } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,11 +14,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const DroneManager = () => {
   const [drones, setDrones] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [analyzingImage, setAnalyzingImage] = useState(false);
+  const [lastAnalysis, setLastAnalysis] = useState<any>(null);
   const [newDrone, setNewDrone] = useState({
     name: "",
     model: "",
@@ -123,48 +126,104 @@ const DroneManager = () => {
 
   const detectIssues = async (droneId: string, patrolId: string) => {
     try {
-      // Random chance to detect an issue (70% chance)
-      const hasIssue = Math.random() > 0.3;
+      // Simulate drone capturing an image during patrol
+      // In production, this would be a real image from the drone's camera
+      const sampleImages = [
+        'https://images.unsplash.com/photo-1621905251918-48416bd8575a', // Parking lot
+        'https://images.unsplash.com/photo-1593941707882-a5bba14938c7', // EV charging station
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64', // Street infrastructure
+        'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d', // Parking damage
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64', // Urban maintenance
+      ];
       
-      if (hasIssue) {
-        // Random location near center (adjust these coordinates to your area)
+      const randomImage = sampleImages[Math.floor(Math.random() * sampleImages.length)];
+      
+      console.log('Drone capturing image for AI analysis...');
+      setAnalyzingImage(true);
+      
+      // Analyze image with AI
+      const { data: analysisData, error: analysisError } = await supabase.functions.invoke(
+        'analyze-drone-image',
+        {
+          body: {
+            imageUrl: randomImage,
+            context: `Patrouille de surveillance urbaine - Zone de véhicules électriques`
+          }
+        }
+      );
+
+      setAnalyzingImage(false);
+
+      if (analysisError) {
+        console.error('Error analyzing image:', analysisError);
+        throw analysisError;
+      }
+
+      console.log('AI Analysis result:', analysisData);
+      setLastAnalysis(analysisData);
+
+      if (analysisData?.success && analysisData?.analysis) {
+        const analysis = analysisData.analysis;
+        
+        // Random location near center
         const lat = 48.8566 + (Math.random() - 0.5) * 0.1;
         const lng = 2.3522 + (Math.random() - 0.5) * 0.1;
 
-        const issueTypes = [
-          "Borne de recharge défectueuse",
-          "Place de parking endommagée",
-          "Obstacle sur la voie",
-          "Éclairage défaillant",
-          "Véhicule abandonné"
-        ];
-        const issueType = issueTypes[Math.floor(Math.random() * issueTypes.length)];
+        // Determine if it's a real issue based on AI confidence
+        const isRealIssue = analysis.confidence > 60 && analysis.severity !== 'low';
 
-        // Create alert
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        const { error: alertError } = await supabase.from("alerts").insert({
-          title: `${issueType} - Panne détectée par drone`,
-          description: `Détection automatique par drone lors d'une patrouille. Intervention requise.`,
-          type: "maintenance",
-          latitude: lat,
-          longitude: lng,
-          status: "open",
-          created_by: user?.id,
-        });
+        if (isRealIssue) {
+          // Create alert with AI analysis
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          const alertTitle = `${analysis.issue_type} - Détecté par IA (${analysis.confidence}% confiance)`;
+          const alertDescription = `
+🤖 Analyse IA: ${analysis.description}
 
-        if (alertError) throw alertError;
+⚠️ Gravité: ${analysis.severity.toUpperCase()}
+🔧 Action recommandée: ${analysis.recommended_action}
 
-        // Update patrol record
-        await supabase
-          .from("drone_patrols")
-          .update({ 
-            issues_detected: 1,
-            end_time: new Date().toISOString()
-          })
-          .eq("id", patrolId);
+📸 Image capturée lors de la patrouille automatique.
+          `.trim();
 
-        toast.success("⚠️ Panne détectée par drone !");
+          const { error: alertError } = await supabase.from("alerts").insert({
+            title: alertTitle,
+            description: alertDescription,
+            type: "maintenance",
+            latitude: lat,
+            longitude: lng,
+            status: "open",
+            created_by: user?.id,
+          });
+
+          if (alertError) throw alertError;
+
+          // Update patrol record
+          await supabase
+            .from("drone_patrols")
+            .update({ 
+              issues_detected: 1,
+              end_time: new Date().toISOString()
+            })
+            .eq("id", patrolId);
+
+          toast.success(`🚁 Panne détectée par IA: ${analysis.issue_type}`, {
+            description: `Confiance: ${analysis.confidence}% - Gravité: ${analysis.severity}`
+          });
+        } else {
+          // No significant issue detected
+          await supabase
+            .from("drone_patrols")
+            .update({ 
+              issues_detected: 0,
+              end_time: new Date().toISOString()
+            })
+            .eq("id", patrolId);
+
+          toast.info("✅ Patrouille terminée - Aucun problème détecté", {
+            description: `Analyse IA: Zone en bon état (confiance: ${analysis.confidence}%)`
+          });
+        }
       }
 
       // Update drone back to idle
@@ -176,6 +235,19 @@ const DroneManager = () => {
       fetchDrones();
     } catch (error: any) {
       console.error("Erreur lors de la détection:", error);
+      setAnalyzingImage(false);
+      
+      // Update drone back to idle even on error
+      await supabase
+        .from("drones")
+        .update({ status: "idle" })
+        .eq("id", droneId);
+      
+      toast.error("Erreur lors de l'analyse IA", {
+        description: error.message || "Impossible d'analyser l'image"
+      });
+      
+      fetchDrones();
     }
   };
 
@@ -214,6 +286,24 @@ const DroneManager = () => {
 
   return (
     <div className="space-y-6">
+      {analyzingImage && (
+        <Alert className="border-primary">
+          <Brain className="h-4 w-4 animate-pulse" />
+          <AlertDescription className="ml-2">
+            <strong>Analyse IA en cours...</strong> Le drone analyse l'image capturée pour identifier les pannes.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {lastAnalysis && lastAnalysis.success && (
+        <Alert className="border-green-500">
+          <Camera className="h-4 w-4" />
+          <AlertDescription className="ml-2">
+            <strong>Dernière analyse:</strong> {lastAnalysis.analysis.issue_type} 
+            {" "}({lastAnalysis.analysis.confidence}% confiance) - {lastAnalysis.analysis.severity}
+          </AlertDescription>
+        </Alert>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Gestion des Drones</h2>
@@ -246,6 +336,12 @@ const DroneManager = () => {
                   <Battery className="w-4 h-4" />
                   <span>{drone.battery_level}%</span>
                 </div>
+                {drone.status === "patrolling" && (
+                  <Badge variant="outline" className="animate-pulse">
+                    <Brain className="w-3 h-3 mr-1" />
+                    IA Active
+                  </Badge>
+                )}
                 {drone.last_patrol_at && (
                   <div className="text-xs text-muted-foreground">
                     Dernière patrouille:{" "}
