@@ -1,0 +1,24 @@
+workflows:
+  android-workflow:
+    name: Android build workflow
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      vars:
+        ANDROID_KEYSTORE_BASE64: EncryptedKeystore
+        ANDROID_KEYSTORE_PASSWORD: EncryptedPassword
+        ANDROID_KEY_ALIAS: alias
+        ANDROID_KEY_PASSWORD: EncryptedKeyPassword
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm ci
+          npm run build
+          npx cap copy android
+      - name: Build APK
+        script: |
+          cd android
+          ./gradlew assembleRelease
+    artifacts:
+      - android/app/build/outputs/**/*.apk
