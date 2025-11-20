@@ -7,11 +7,6 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    // ON FORCE L'INJECTION D'UN HEADER QUI TUE LOVABLE À LA RACINE
-    headers: {
-      "X-Lovable-Chat": "disabled",
-      "Access-Control-Expose-Headers": "X-Lovable-Chat",
-    },
   },
 
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
@@ -20,10 +15,5 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-  },
-
-  // Double protection : variable + header
-  define: {
-    "window.LOVABLE_CHAT_DISABLED": JSON.stringify(true),
   },
 }));
