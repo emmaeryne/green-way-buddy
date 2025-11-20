@@ -89,6 +89,83 @@ export type Database = {
         }
         Relationships: []
       }
+      drone_patrols: {
+        Row: {
+          areas_covered: string[] | null
+          created_at: string | null
+          drone_id: string
+          end_time: string | null
+          id: string
+          issues_detected: number | null
+          start_time: string | null
+        }
+        Insert: {
+          areas_covered?: string[] | null
+          created_at?: string | null
+          drone_id: string
+          end_time?: string | null
+          id?: string
+          issues_detected?: number | null
+          start_time?: string | null
+        }
+        Update: {
+          areas_covered?: string[] | null
+          created_at?: string | null
+          drone_id?: string
+          end_time?: string | null
+          id?: string
+          issues_detected?: number | null
+          start_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drone_patrols_drone_id_fkey"
+            columns: ["drone_id"]
+            isOneToOne: false
+            referencedRelation: "drones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drones: {
+        Row: {
+          battery_level: number | null
+          created_at: string | null
+          current_latitude: number | null
+          current_longitude: number | null
+          id: string
+          is_active: boolean | null
+          last_patrol_at: string | null
+          model: string | null
+          name: string
+          status: string | null
+        }
+        Insert: {
+          battery_level?: number | null
+          created_at?: string | null
+          current_latitude?: number | null
+          current_longitude?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_patrol_at?: string | null
+          model?: string | null
+          name: string
+          status?: string | null
+        }
+        Update: {
+          battery_level?: number | null
+          created_at?: string | null
+          current_latitude?: number | null
+          current_longitude?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_patrol_at?: string | null
+          model?: string | null
+          name?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
       electric_vehicles: {
         Row: {
           battery_capacity: number | null

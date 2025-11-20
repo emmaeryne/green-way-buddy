@@ -17,6 +17,26 @@ const SubscriptionsOverview = () => {
 
   useEffect(() => {
     fetchSubscriptionsData();
+
+    // Set up real-time subscription for new subscriptions
+    const channel = supabase
+      .channel('subscriptions-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'user_subscriptions'
+        },
+        () => {
+          fetchSubscriptionsData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchSubscriptionsData = async () => {

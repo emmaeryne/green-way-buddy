@@ -3,11 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, AlertCircle, Calendar, MapPin } from "lucide-react";
+import { Users, AlertCircle, Calendar, MapPin, DollarSign, Tag, Plane, Settings, Zap, Car, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import PromoCodesManager from "./PromoCodesManager";
 import SubscriptionsOverview from "./SubscriptionsOverview";
+import DroneManager from "./DroneManager";
 
 interface AdminDashboardProps {
   userId: string;
@@ -193,10 +194,11 @@ const AdminDashboard = ({ userId }: AdminDashboardProps) => {
       </div>
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="users">Utilisateurs</TabsTrigger>
           <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
           <TabsTrigger value="promos">Codes Promo</TabsTrigger>
+          <TabsTrigger value="drones">Drones</TabsTrigger>
           <TabsTrigger value="alerts">Alertes</TabsTrigger>
           <TabsTrigger value="reservations">Réservations</TabsTrigger>
         </TabsList>
@@ -207,6 +209,10 @@ const AdminDashboard = ({ userId }: AdminDashboardProps) => {
 
         <TabsContent value="promos" className="space-y-4">
           <PromoCodesManager />
+        </TabsContent>
+
+        <TabsContent value="drones" className="space-y-4">
+          <DroneManager />
         </TabsContent>
 
         <TabsContent value="users" className="space-y-4">
