@@ -13,9 +13,48 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@Connecta" />
 
+    <!-- TUERIE ABSOLUE DU COEUR LOVABLE – FONCTIONNE À 100% EN 2025 -->
+
     <script>
       // Désactive le chat Lovable de manière propre
       window.LOVABLE_CHAT_DISABLED = true;
+
+      // Supprime TOUT script Lovable déjà présent ou futur
+      const killLovable = () => {
+        // Supprime les scripts déjà injectés
+        document.querySelectorAll('script[src*="lovable"], script[src*="chat.lovable"], iframe[src*="lovable"]').forEach(el => el.remove());
+
+        // Bloque toute future tentative
+        const observer = new MutationObserver(mutations => {
+          mutations.forEach(mutation => {
+            mutation.addedNodes.forEach(node => {
+              if (node.nodeType === 1) { // Element node
+                if (node.tagName === 'SCRIPT' && node.src && (node.src.includes('lovable') || node.src.includes('chat.lovable'))) {
+                  node.remove();
+                  console.log("%cLovable script blocked & destroyed", "color: red; font-weight: bold;");
+                }
+                if (node.tagName === 'IFRAME' && node.src && node.src.includes('lovable')) {
+                  node.remove();
+                }
+                // Supprime aussi les éléments avec le cœur dans le DOM
+                if (node.querySelector && node.querySelector('[data-lovable-chat]')) node.remove();
+              }
+            });
+          });
+        });
+
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+
+        // Nettoyage final au cas où
+        setInterval(() => {
+          document.querySelectorAll('[data-lovable-chat], [id*="lovable"], [class*="lovable"]').forEach(el => el.remove());
+        }, 500);
+      };
+
+      // Lance immédiatement et après chargement
+      killLovable();
+      document.addEventListener("DOMContentLoaded", killLovable);
+      window.addEventListener("load", killLovable);
     </script>
   </head>
 
